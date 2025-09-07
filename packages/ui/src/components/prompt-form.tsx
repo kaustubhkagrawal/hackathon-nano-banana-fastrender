@@ -223,7 +223,7 @@ function PromptForm({
   ];
 
   const actions = [
-    { value: "render", label: "Render Image" },
+    { value: "render", label: "3d Render" },
     { value: "video-walkthrough", label: "Video Walkthrough" },
     { value: "360-view", label: "360 View Generation", disabled: true },
   ];
@@ -674,7 +674,9 @@ function PromptForm({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      Convert to 3D
+                      {action === "video-walkthrough"
+                        ? "Create Walkthrough"
+                        : "Convert to 3D"}
                     </span>
                   ) : (
                     <svg
