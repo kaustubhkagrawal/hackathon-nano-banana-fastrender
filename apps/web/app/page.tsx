@@ -420,7 +420,7 @@ export default function Page() {
                 History
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="w-80 max-w-[80vw]">
+            <DrawerContent hideOverlay className="w-80 max-w-[80vw]">
               <DrawerHeader>
                 <DrawerTitle>History & Details</DrawerTitle>
               </DrawerHeader>
@@ -749,7 +749,7 @@ export default function Page() {
                         View History ({history.length})
                       </Button>
                     </DrawerTrigger>
-                    <DrawerContent className="w-80 max-w-[80vw]">
+                    <DrawerContent hideOverlay className="w-80 max-w-[80vw]">
                       <DrawerHeader>
                         <DrawerTitle>History</DrawerTitle>
                       </DrawerHeader>
@@ -945,7 +945,7 @@ export default function Page() {
               <p className="text-blue-600 font-medium text-lg">
                 {action === "video-walkthrough"
                   ? "Generating video walkthrough..."
-                  : "Generating 3D render..."}
+                  : "Generating 3D View..."}
               </p>
             </div>
 
