@@ -384,7 +384,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-svh bg-background overflow-hidden">
+    <div className="h-svh flex flex-col bg-background overflow-hidden [background-size:40px_40px] [background-image:linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]">
       {/* Header - Only show when not submitted */}
       <AnimatePresence>
         {!hasSubmitted && !renderResult && (
@@ -393,27 +393,27 @@ export default function Page() {
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="max-w-4xl mx-auto px-4"> 
-              
+            <div className="max-w-4xl mx-auto px-4">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-                Transform <span className="text-blue-500">Floor Plans</span> Into
+                Transform <span className="text-blue-500">Floor Plans</span>{" "}
+                Into
                 <span className="block mt-2">Photorealistic 3D Views</span>
               </h1>
-              
+
               <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-                AI-powered architectural visualization that converts <br/> 2D plans into stunning 3D renders 
+                AI-powered architectural visualization that converts <br /> 2D
+                plans into stunning 3D renders
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-     
 
       {/* Main Layout */}
       <div
-        className={`transition-all duration-1000 ${
+        className={`transition-all duration-1000 flex-1 overflow-hidden ${
           hasSubmitted && renderResult
-            ? "h-screen flex flex-col pb-32"
+            ? "flex flex-col"
             : "flex items-center justify-center min-h-[60vh] px-8 pb-32"
         }`}
       >
@@ -735,7 +735,6 @@ export default function Page() {
               </motion.div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
 
