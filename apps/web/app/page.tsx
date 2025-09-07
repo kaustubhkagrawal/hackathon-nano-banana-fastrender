@@ -719,7 +719,7 @@ export default function Page() {
               {/* History Button - Show when page is empty but there's history */}
               {history.length > 0 && (
                 <div className="mb-6">
-                  <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                  <Drawer direction="right" open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                     <DrawerTrigger asChild>
                       <Button
                         variant="outline"
@@ -742,7 +742,6 @@ export default function Page() {
                       </Button>
                     </DrawerTrigger>
                     <DrawerContent
-                      direction="right"
                       className="w-80 max-w-[80vw]"
                     >
                       <DrawerHeader>
