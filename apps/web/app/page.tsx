@@ -387,21 +387,27 @@ export default function Page() {
     <div className="min-h-svh bg-background overflow-hidden">
       {/* Header - Only show when not submitted */}
       <AnimatePresence>
-        {!hasSubmitted && (
+        {!hasSubmitted && !renderResult && (
           <motion.div
-            className="text-center py-8"
+            className="text-center py-12 md:py-16"
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              3D Render Generator
-            </h1>
-            <p className="text-muted-foreground">
-              Select an image and describe your vision to generate a 3D render
-            </p>
+            <div className="max-w-4xl mx-auto px-4"> 
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+                Transform <span className="text-blue-500">Floor Plans</span> Into
+                <span className="block mt-2">Photorealistic 3D Views</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+                AI-powered architectural visualization that converts <br/> 2D plans into stunning 3D renders 
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+     
 
       {/* Main Layout */}
       <div
@@ -729,6 +735,7 @@ export default function Page() {
               </motion.div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </div>
 
