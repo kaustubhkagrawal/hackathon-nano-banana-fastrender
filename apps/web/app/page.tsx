@@ -4,6 +4,14 @@ import { PromptForm } from "@workspace/ui/components/prompt-form";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useRenderHistoryStore, usePublicImagesStore } from "@/stores";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@workspace/ui/components/drawer";
+import { Button } from "@workspace/ui/components/button";
 import React from "react";
 
 interface RenderResult {
@@ -53,6 +61,7 @@ export default function Page() {
   const [action, setAction] = useState<
     "render" | "video-walkthrough" | "360-view"
   >("render");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Load the current result from store on component mount
   useEffect(() => {
@@ -425,10 +434,317 @@ export default function Page() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
-              className="flex-1 flex overflow-hidden"
+              className="flex-1 flex flex-col overflow-hidden"
             >
+              {/* Top Bar with Drawer Trigger */}
+              <div className="flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {action === "video-walkthrough"
+                      ? "Video Generated"
+                      : "Generated"}
+                  </h3>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-background/80 border-border hover:bg-muted/50"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        History
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent direction="right" className="w-80 max-w-[80vw]">
+                      <DrawerHeader>
+                        <DrawerTitle>History & Details</DrawerTitle>
+                      </DrawerHeader>
+                      
+                      <div className="flex-1 p-4 overflow-y-auto">
+                        {/* Main Result Thumbnail */}
+                        {action === "video-walkthrough" && renderResult.video?.url ? (
+                          <div className="relative group cursor-pointer mb-6">
+                            <div className="w-full aspect-square bg-muted rounded-lg border-2 border-primary shadow-lg flex items-center justify-center">
+                              <svg
+                                className="w-8 h-8 text-primary"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            </div>
+                            <div className="absolute inset-0 bg-primary/10 rounded-lg"></div>
+                            <div className="absolute bottom-2 left-2 right-2">
+                              <p className="text-xs text-foreground font-medium truncate">
+                                Current Video
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          (selectedLibraryImage || uploadedImage) && (
+                            <div className="relative group cursor-pointer mb-6">
+                              <img
+                                src={
+                                  selectedLibraryImage ||
+                                  (uploadedImage
+                                    ? URL.createObjectURL(uploadedImage)
+                                    : "")
+                                }
+                                alt="Original plan image"
+                                className="w-full aspect-square object-contain rounded-lg border-2 border-primary shadow-lg bg-background"
+                              />
+                              <div className="absolute inset-0 bg-primary/10 rounded-lg"></div>
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <p className="text-xs text-foreground font-medium truncate bg-background/80 rounded px-2 py-1">
+                                  Original Plan
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        )}
+
+                        {/* History Section */}
+                        <div className="border-t border-border pt-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-sm font-semibold text-foreground">
+                              History
+                            </h4>
+                            <button
+                              onClick={handleClearHistory}
+                              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {history.length === 0 ? (
+                              <p className="text-sm text-muted-foreground text-center py-4">
+                                No history yet
+                              </p>
+                            ) : (
+                              history.map((item) => (
+                                <div
+                                  key={item.id}
+                                  onClick={() => {
+                                    handleSelectHistoryItem(item);
+                                    setIsDrawerOpen(false);
+                                  }}
+                                  className={`relative group cursor-pointer rounded-lg p-3 border transition-all ${
+                                    currentResult?.id === item.id
+                                      ? "bg-primary/10 border-primary/30"
+                                      : "bg-background hover:bg-muted/50 border-border"
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    {item.renderedImageUrl ? (
+                                      // Check if this is a video or image based on file extension or other heuristics
+                                      item.renderedImageUrl.endsWith(".mp4") ||
+                                      item.renderedImageUrl.endsWith(".webm") ||
+                                      item.renderedImageUrl.endsWith(".mov") ? (
+                                        // Video thumbnail
+                                        <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                          <svg
+                                            className="w-5 h-5 text-muted-foreground"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={1}
+                                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                            />
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={1}
+                                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                          </svg>
+                                        </div>
+                                      ) : (
+                                        // Image thumbnail
+                                        <img
+                                          src={item.renderedImageUrl}
+                                          alt="Thumbnail"
+                                          className="w-12 h-12 object-cover rounded"
+                                        />
+                                      )
+                                    ) : (
+                                      <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                        <svg
+                                          className="w-5 h-5 text-muted-foreground"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1}
+                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                          />
+                                        </svg>
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-foreground truncate">
+                                        {item.description.substring(0, 30)}...
+                                      </p>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                        <span className="bg-muted px-2 py-0.5 rounded">{item.action}</span>
+                                        <span>{item.model}</span>
+                                        {item.style && (
+                                          <>
+                                            <span>•</span>
+                                            <span>{item.style}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {new Date(item.timestamp).toLocaleString()}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Download Section */}
+                        {(renderResult.media?.absoluteUrl ||
+                          renderResult.video?.url) && (
+                          <div className="mt-6 pt-4 border-t border-border">
+                            <div className="text-sm text-muted-foreground mb-3">
+                              {action === "video-walkthrough" ? (
+                                <>
+                                  {renderResult.video?.file_size && (
+                                    <p>
+                                      File Size:{" "}
+                                      {(
+                                        renderResult.video.file_size /
+                                        1024 /
+                                        1024
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <p>
+                                    Size: {renderResult.media?.width} ×{" "}
+                                    {renderResult.media?.height}
+                                  </p>
+                                  {renderResult.media?.filesize && (
+                                    <p>
+                                      File Size:{" "}
+                                      {(
+                                        renderResult.media.filesize /
+                                        1024 /
+                                        1024
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <Button
+                              asChild
+                              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                            >
+                              <a
+                                href={
+                                  action === "video-walkthrough"
+                                    ? renderResult.video?.url
+                                    : renderResult.media?.absoluteUrl
+                                }
+                                download={
+                                  action === "video-walkthrough"
+                                    ? renderResult.video?.file_name
+                                    : renderResult.media?.filename
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                                  />
+                                </svg>
+                                Download
+                              </a>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
+                  
+                  <button
+                    onClick={clearResults}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    ✕ Clear
+                  </button>
+                </div>
+              </div>
+
               {/* Main Content Area */}
-              <div className="flex-1 flex items-center justify-center p-8 bg-muted/20">
+              <div className="flex-1 flex items-center justify-center p-8 bg-background">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -463,7 +779,7 @@ export default function Page() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={1}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
                     </div>
@@ -471,279 +787,18 @@ export default function Page() {
                 </motion.div>
               </div>
 
-              {/* Right Sidebar */}
-              <motion.div
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="w-64 bg-muted/30 border-l border-border p-4 flex flex-col gap-4 overflow-y-auto"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="w-5 h-5 text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {action === "video-walkthrough"
-                        ? "Video Generated"
-                        : "Generated"}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={clearResults}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    ✕ Clear
-                  </button>
-                </div>
 
-                {/* Main Result Thumbnail */}
-                {action === "video-walkthrough" && renderResult.video?.url ? (
-                  <div className="relative group cursor-pointer">
-                    <div className="w-full aspect-square bg-muted rounded-lg border-2 border-blue-500 shadow-lg flex items-center justify-center">
-                      <svg
-                        className="w-8 h-8 text-blue-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-lg"></div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-xs text-foreground font-medium truncate">
-                        Current Video
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  (selectedLibraryImage || uploadedImage) && (
-                    <div className="relative group cursor-pointer">
-                      <img
-                        src={
-                          selectedLibraryImage ||
-                          (uploadedImage
-                            ? URL.createObjectURL(uploadedImage)
-                            : "")
-                        }
-                        alt="Original plan image"
-                        className="w-full aspect-square object-contain rounded-lg border-2 border-blue-500 shadow-lg bg-muted/30"
-                      />
-                      <div className="absolute inset-0 bg-blue-500/20 rounded-lg"></div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <p className="text-xs text-foreground font-medium truncate">
-                          Original Plan
-                        </p>
-                      </div>
-                    </div>
-                  )
-                )}
-
-                {/* History Section */}
-                <div className="border-t border-border pt-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                      History
-                    </h4>
-                    <button
-                      onClick={handleClearHistory}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {history.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-2">
-                        No history yet
-                      </p>
-                    ) : (
-                      history.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleSelectHistoryItem(item)}
-                          className={`relative group cursor-pointer rounded-lg p-2 ${
-                            currentResult?.id === item.id
-                              ? "bg-blue-500/20 border border-blue-500/30"
-                              : "hover:bg-muted/50"
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            {item.renderedImageUrl ? (
-                              // Check if this is a video or image based on file extension or other heuristics
-                              item.renderedImageUrl.endsWith(".mp4") ||
-                              item.renderedImageUrl.endsWith(".webm") ||
-                              item.renderedImageUrl.endsWith(".mov") ? (
-                                // Video thumbnail
-                                <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
-                                  <svg
-                                    className="w-4 h-4 text-muted-foreground"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={1}
-                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={1}
-                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                </div>
-                              ) : (
-                                // Image thumbnail
-                                <img
-                                  src={item.renderedImageUrl}
-                                  alt="Thumbnail"
-                                  className="w-10 h-10 object-cover rounded"
-                                />
-                              )
-                            ) : (
-                              <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
-                                <svg
-                                  className="w-4 h-4 text-muted-foreground"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1}
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-foreground truncate">
-                                {item.description.substring(0, 20)}...
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(item.timestamp).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Download Section */}
-                {(renderResult.media?.absoluteUrl ||
-                  renderResult.video?.url) && (
-                  <div className="mt-auto pt-4 border-t border-border">
-                    <div className="text-xs text-muted-foreground mb-2">
-                      {action === "video-walkthrough" ? (
-                        <>
-                          {renderResult.video?.file_size && (
-                            <p>
-                              File:{" "}
-                              {(
-                                renderResult.video.file_size /
-                                1024 /
-                                1024
-                              ).toFixed(2)}{" "}
-                              MB
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <p>
-                            Size: {renderResult.media?.width} ×{" "}
-                            {renderResult.media?.height}
-                          </p>
-                          {renderResult.media?.filesize && (
-                            <p>
-                              File:{" "}
-                              {(
-                                renderResult.media.filesize /
-                                1024 /
-                                1024
-                              ).toFixed(2)}{" "}
-                              MB
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <motion.a
-                      href={
-                        action === "video-walkthrough"
-                          ? renderResult.video?.url
-                          : renderResult.media?.absoluteUrl
-                      }
-                      download={
-                        action === "video-walkthrough"
-                          ? renderResult.video?.file_name
-                          : renderResult.media?.filename
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                        />
-                      </svg>
-                      Download
-                    </motion.a>
-                  </div>
-                )}
-              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Floating Form - Always positioned at bottom */}
+      {/* Floating Form - Positioned based on submission state */}
       <motion.div
         layout
         initial={{ y: 0 }}
         animate={{
-          y: 0,
+          y: hasSubmitted ? 0 : 0,
           scale: 1,
         }}
         transition={{
@@ -752,7 +807,11 @@ export default function Page() {
           damping: 20,
           duration: 0.8,
         }}
-        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center"
+        className={`${
+          hasSubmitted 
+            ? "fixed bottom-6 left-1/2 transform -translate-x-1/2" 
+            : "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        } z-50 flex flex-col items-center transition-all duration-800`}
       >
         {/* Loading State - Above the form */}
         {isLoading && (
