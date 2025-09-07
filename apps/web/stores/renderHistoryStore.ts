@@ -6,6 +6,7 @@ export interface RenderResult {
   description: string
   model: string
   style: string
+  action: 'render' | 'video-walkthrough' | '360-view'
   imageUrl: string
   renderedImageUrl: string
   timestamp: Date
@@ -15,6 +16,12 @@ export interface RenderResult {
     height: number
     filesize: number
     filename: string
+  }
+  video?: {
+    url: string
+    file_name: string
+    file_size: number
+    content_type: string
   }
 }
 
