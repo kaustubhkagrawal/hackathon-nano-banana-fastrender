@@ -217,7 +217,7 @@ function PromptForm({
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-end">
-                              <div className="p-2 text-white bg-background/80 w-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <div className="p-2 text-white light:bg-black/80 dark:bg-background/80 w-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                 {image.title}
                               </div>
                             </div>

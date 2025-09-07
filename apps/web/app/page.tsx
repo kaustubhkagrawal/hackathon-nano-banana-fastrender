@@ -18,6 +18,8 @@ export default function Page() {
     string | null
   >(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [renderResult, setRenderResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -73,11 +75,91 @@ export default function Page() {
       return;
     }
 
+    // Declare variables at function scope to be accessible throughout
+    let progressInterval: NodeJS.Timeout | undefined;
+    let completeApiCall: (() => void) | undefined;
+
     try {
       setIsLoading(true);
       setError(null);
       setRenderResult(null);
       setHasSubmitted(true); // Trigger animation
+      setLoadingStage(0);
+      setLoadingProgress(0);
+
+      // Start smart loading simulation that adapts to actual API progress
+      const loadingStages = [
+        { stage: 0, text: "Analyzing room structure...", baseMinTime: 2000, maxTime: 3000 },
+        { stage: 1, text: "Reading walls and windows...", baseMinTime: 3000, maxTime: 5000 },
+        { stage: 2, text: "Detecting furniture placement...", baseMinTime: 4000, maxTime: 7000 },
+        { stage: 3, text: "Calculating camera angles...", baseMinTime: 2000, maxTime: 4000 },
+        { stage: 4, text: "Rendering 3D environment...", baseMinTime: 2000, maxTime: 8000 }
+      ];
+
+      let currentStageIndex = 0;
+      let stageStartTime = Date.now();
+      let loadingStartTime = Date.now();
+      let isApiComplete = false;
+      
+      const updateLoadingProgress = () => {
+        const currentStage = loadingStages[currentStageIndex];
+        if (!currentStage) return;
+        
+        const elapsed = Date.now() - stageStartTime;
+        const totalElapsed = Date.now() - loadingStartTime;
+        
+        // Calculate adaptive progress based on API completion status
+        let stageProgress: number;
+        
+        if (isApiComplete) {
+          // If API is complete, quickly finish remaining stages
+          stageProgress = Math.min((elapsed / 500) * 1, 1); // 500ms per remaining stage
+        } else {
+          // Normal progress with minimum time requirements
+          const minProgress = Math.min(elapsed / currentStage.baseMinTime, 0.8);
+          
+          // Use slower progress for early stages, faster for later stages if taking too long
+          if (totalElapsed > 30000) { // If over 30 seconds, speed up
+            stageProgress = Math.min(elapsed / (currentStage.baseMinTime * 0.5), 0.9);
+          } else {
+            stageProgress = minProgress;
+          }
+        }
+        
+        setLoadingStage(currentStageIndex);
+        setLoadingProgress(stageProgress * 100);
+        
+        // Move to next stage if:
+        // 1. Current stage is complete (progress >= 1)
+        // 2. OR API is complete and minimum time has passed
+        // 3. OR current stage has been running for too long
+        const shouldMoveToNext = 
+          stageProgress >= 1 || 
+          (isApiComplete && elapsed > 800) ||
+          (!isApiComplete && elapsed > currentStage.maxTime);
+          
+        if (shouldMoveToNext && currentStageIndex < loadingStages.length - 1) {
+          currentStageIndex++;
+          stageStartTime = Date.now();
+        }
+        
+        // Continue updating if not on last stage or if last stage not complete
+        if (currentStageIndex < loadingStages.length - 1 || stageProgress < 1) {
+          progressInterval = setTimeout(updateLoadingProgress, 100);
+        }
+      };
+      
+      // Function to signal API completion
+      completeApiCall = () => {
+        isApiComplete = true;
+        // If we're still on early stages when API completes, jump to final stages
+        if (currentStageIndex < 3) {
+          currentStageIndex = 3;
+          stageStartTime = Date.now();
+        }
+      };
+      
+      updateLoadingProgress();
 
       // Prepare the image URL
       let imageUrl: string;
@@ -121,6 +203,11 @@ export default function Page() {
 
       const result = await response.json();
 
+      // Signal that API call is complete
+      if (completeApiCall) {
+        completeApiCall();
+      }
+
       if (!response.ok) {
         throw new Error(
           result.error || `Request failed with status ${response.status}`
@@ -141,11 +228,21 @@ export default function Page() {
       });
     } catch (err) {
       console.error("Render request failed:", err);
+      // Signal completion even on error
+      if (completeApiCall) {
+        completeApiCall();
+      }
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
     } finally {
       setIsLoading(false);
+      setLoadingStage(0);
+      setLoadingProgress(0);
+      // Clean up any remaining progress intervals
+      if (progressInterval) {
+        clearTimeout(progressInterval);
+      }
     }
   };
 
@@ -279,18 +376,18 @@ export default function Page() {
                   </button>
                 </div>
 
-                {/* Main Result Thumbnail */}
-                {renderResult.media?.absoluteUrl && (
+                {/* Main Result Thumbnail - Show Original Plan Image */}
+                {(selectedLibraryImage || uploadedImage) && (
                   <div className="relative group cursor-pointer">
                     <img
-                      src={renderResult.media.absoluteUrl}
-                      alt="Generated render thumbnail"
-                      className="w-full aspect-square object-cover rounded-lg border-2 border-blue-500 shadow-lg"
+                      src={selectedLibraryImage || (uploadedImage ? URL.createObjectURL(uploadedImage) : '')}
+                      alt="Original plan image"
+                      className="w-full aspect-square object-contain rounded-lg border-2 border-blue-500 shadow-lg bg-muted/30"
                     />
                     <div className="absolute inset-0 bg-blue-500/20 rounded-lg"></div>
                     <div className="absolute bottom-2 left-2 right-2">
                       <p className="text-xs text-foreground font-medium truncate">
-                        Current Render
+                        Original Plan
                       </p>
                     </div>
                   </div>
@@ -436,16 +533,81 @@ export default function Page() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg backdrop-blur-sm"
+            className="mb-4 p-6 bg-blue-500/10 border border-blue-500/20 rounded-lg backdrop-blur-sm max-w-md"
           >
-            <div className="flex items-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-              <p className="text-blue-600 font-medium">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <p className="text-blue-600 font-medium text-lg">
                 Generating 3D render...
               </p>
             </div>
-            <p className="text-blue-500 text-sm mt-1">
-              This may take a few moments
+            
+            {/* Loading Stages */}
+            <div className="space-y-3">
+              {[
+                "Analyzing room structure...",
+                "Reading walls and windows...", 
+                "Detecting furniture placement...",
+                "Calculating camera angles...",
+                "Rendering 3D environment..."
+              ].map((stageText, index) => {
+                const isActive = loadingStage === index;
+                const isCompleted = loadingStage > index;
+                
+                return (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      isCompleted 
+                        ? 'bg-green-500 border-green-500' 
+                        : isActive 
+                        ? 'border-blue-500 bg-blue-500/20' 
+                        : 'border-gray-400'
+                    }`}>
+                      {isCompleted && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {isActive && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      isCompleted 
+                        ? 'text-green-600 font-medium' 
+                        : isActive 
+                        ? 'text-blue-600 font-medium' 
+                        : 'text-gray-500'
+                    }`}>
+                      {stageText}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs text-blue-600 font-medium">
+                  Stage {loadingStage + 1} of 5
+                </span>
+                <span className="text-xs text-blue-500">
+                  {Math.round(loadingProgress)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${loadingProgress}%` }}
+                  transition={{ duration: 0.1 }}
+                />
+              </div>
+            </div>
+            
+            <p className="text-blue-500 text-xs mt-3 text-center">
+              This process typically takes 45-60 seconds
             </p>
           </motion.div>
         )}
