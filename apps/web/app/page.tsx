@@ -3,10 +3,35 @@
 import { PromptForm } from "@workspace/ui/components/prompt-form";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useRenderHistoryStore } from '@/stores';
+import { useRenderHistoryStore, usePublicImagesStore } from '@/stores';
+
+interface RenderResult {
+  id: string
+  description: string
+  model: string
+  style: string
+  action: 'render' | 'video-walkthrough' | '360-view'
+  imageUrl: string
+  renderedImageUrl: string
+  timestamp: Date
+  media?: {
+    absoluteUrl: string
+    width: number
+    height: number
+    filesize: number
+    filename: string
+  }
+  video?: {
+    url: string
+    file_name: string
+    file_size: number
+    content_type: string
+  }
+}
 
 export default function Page() {
   const { history, currentResult, addResult, setCurrentResult, clearHistory } = useRenderHistoryStore();
+  const { publicImages, addPublicImage, removePublicImage } = usePublicImagesStore();
   const [description, setDescription] = useState(
     "Create a 3d render of the given floor plan"
   );
@@ -20,6 +45,7 @@ export default function Page() {
   const [renderResult, setRenderResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [action, setAction] = useState<'render' | 'video-walkthrough' | '360-view'>('render');
 
   // Load the current result from store on component mount
   useEffect(() => {
@@ -60,7 +86,7 @@ export default function Page() {
     console.log("Style changed:", selectedStyle);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (selectedAction: 'render' | 'video-walkthrough' | '360-view') => {
     // Validate form data
     if (!description.trim()) {
       setError("Please enter a description");
@@ -71,6 +97,8 @@ export default function Page() {
       setError("Please select an image from the library or upload one");
       return;
     }
+
+    setAction(selectedAction);
 
     try {
       setIsLoading(true);
@@ -93,53 +121,102 @@ export default function Page() {
         throw new Error("No image available");
       }
 
-      // Prepare the API request payload
-      const payload = {
-        style,
-        model,
-        assets: [
-          {
-            id: "",
-            url: imageUrl,
+      let result;
+      if (selectedAction === 'render') {
+        // Prepare the API request payload for render
+        const payload = {
+          style,
+          model,
+          assets: [
+            {
+              id: "",
+              url: imageUrl,
+            },
+          ],
+          prompt: description,
+          version: 1,
+        };
+
+        console.log("Submitting render request:", payload);
+
+        // Call our Next.js API endpoint for render
+        const response = await fetch("/api/render", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ],
-        prompt: description,
-        version: 1,
-      };
+          body: JSON.stringify(payload),
+        });
 
-      console.log("Submitting render request:", payload);
+        result = await response.json();
 
-      // Call our Next.js API endpoint
-      const response = await fetch("/api/render", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+        if (!response.ok) {
+          throw new Error(
+            result.error || `Request failed with status ${response.status}`
+          );
+        }
+      } else if (selectedAction === 'video-walkthrough') {
+        // Prepare the API request payload for video walkthrough
+        const payload = {
+          assets: [
+            {
+              id: "",
+              url: imageUrl,
+            },
+          ],
+          prompt: description,
+        };
 
-      const result = await response.json();
+        console.log("Submitting video walkthrough request:", payload);
 
-      if (!response.ok) {
-        throw new Error(
-          result.error || `Request failed with status ${response.status}`
-        );
+        // Call our Next.js API endpoint for video walkthrough
+        const response = await fetch("/api/video-walkthrough", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error || `Request failed with status ${response.status}`
+          );
+        }
+      } else {
+        throw new Error("Unsupported action");
       }
 
-      console.log("Render result:", result);
+      console.log("Result:", result);
       setRenderResult(result);
       
       // Add result to history store
-      addResult({
-        description,
-        model,
-        style,
-        imageUrl,
-        renderedImageUrl: result.media?.absoluteUrl || '',
-        media: result.media
-      });
+      if (selectedAction === 'render') {
+        addResult({
+          description,
+          model,
+          style,
+          action: selectedAction,
+          imageUrl,
+          renderedImageUrl: result.media?.absoluteUrl || '',
+          media: result.media
+        });
+      } else if (selectedAction === 'video-walkthrough') {
+        // For video walkthrough, we'll store the video URL
+        addResult({
+          description,
+          model,
+          style: '', // No style for video walkthrough
+          action: selectedAction,
+          imageUrl,
+          renderedImageUrl: result.video?.url || '',
+          video: result.video
+        });
+      }
     } catch (err) {
-      console.error("Render request failed:", err);
+      console.error("Request failed:", err);
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
@@ -156,13 +233,14 @@ export default function Page() {
     clearHistory(); // Also clear the history when clearing results
   };
 
-  const handleSelectHistoryItem = (result: any) => {
+  const handleSelectHistoryItem = (result: RenderResult) => {
     setCurrentResult(result);
     setRenderResult(result);
     setHasSubmitted(true);
     setDescription(result.description);
     setModel(result.model);
     setStyle(result.style);
+    setAction(result.action); // Set the action from history
     setSelectedLibraryImage(result.imageUrl);
   };
 
@@ -218,7 +296,17 @@ export default function Page() {
                   transition={{ delay: 0.2, duration: 0.6 }}
                   className="relative max-w-4xl max-h-full"
                 >
-                  {renderResult.media?.absoluteUrl ? (
+                  {/* Video Preview */}
+                  { renderResult.video?.url ? (
+                    <div className="w-full max-h-[60vh]">
+                      <video 
+                        src={renderResult.video.url} 
+                        controls 
+                        className="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-border"
+                      />
+                    </div>
+                  ) : renderResult.media?.absoluteUrl ? (
+                    /* Image Preview */
                     <img
                       src={renderResult.media.absoluteUrl}
                       alt="Generated 3D render"
@@ -267,7 +355,7 @@ export default function Page() {
                       />
                     </svg>
                     <h3 className="text-sm font-semibold text-foreground">
-                      Generated
+                      {action === 'video-walkthrough' ? 'Video Generated' : 'Generated'}
                     </h3>
                   </div>
                   <button
@@ -279,7 +367,37 @@ export default function Page() {
                 </div>
 
                 {/* Main Result Thumbnail */}
-                {renderResult.media?.absoluteUrl && (
+                {action === 'video-walkthrough' && renderResult.video?.url ? (
+                  <div className="relative group cursor-pointer">
+                    <div className="w-full aspect-square bg-muted rounded-lg border-2 border-blue-500 shadow-lg flex items-center justify-center">
+                      <svg 
+                        className="w-8 h-8 text-blue-500" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" 
+                        />
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                        />
+                      </svg>
+                    </div>
+                    <div className="absolute inset-0 bg-blue-500/20 rounded-lg"></div>
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-xs text-foreground font-medium truncate">
+                        Current Video
+                      </p>
+                    </div>
+                  </div>
+                ) : renderResult.media?.absoluteUrl && (
                   <div className="relative group cursor-pointer">
                     <img
                       src={renderResult.media.absoluteUrl}
@@ -327,11 +445,40 @@ export default function Page() {
                         >
                           <div className="flex items-start gap-2">
                             {item.renderedImageUrl ? (
-                              <img
-                                src={item.renderedImageUrl}
-                                alt="Thumbnail"
-                                className="w-10 h-10 object-cover rounded"
-                              />
+                              // Check if this is a video or image based on file extension or other heuristics
+                              item.renderedImageUrl.endsWith('.mp4') || 
+                              item.renderedImageUrl.endsWith('.webm') || 
+                              item.renderedImageUrl.endsWith('.mov') ? (
+                                // Video thumbnail
+                                <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                                  <svg 
+                                    className="w-4 h-4 text-muted-foreground" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round" 
+                                      strokeWidth={1} 
+                                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" 
+                                    />
+                                    <path 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round" 
+                                      strokeWidth={1} 
+                                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                                    />
+                                  </svg>
+                                </div>
+                              ) : (
+                                // Image thumbnail
+                                <img
+                                  src={item.renderedImageUrl}
+                                  alt="Thumbnail"
+                                  className="w-10 h-10 object-cover rounded"
+                                />
+                              )
                             ) : (
                               <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
                                 <svg
@@ -365,26 +512,42 @@ export default function Page() {
                 </div>
 
                 {/* Download Section */}
-                {renderResult.media?.absoluteUrl && (
+                {(renderResult.media?.absoluteUrl || renderResult.video?.url) && (
                   <div className="mt-auto pt-4 border-t border-border">
                     <div className="text-xs text-muted-foreground mb-2">
-                      <p>
-                        Size: {renderResult.media?.width} ×{" "}
-                        {renderResult.media?.height}
-                      </p>
-                      {renderResult.media?.filesize && (
-                        <p>
-                          File:{" "}
-                          {(renderResult.media.filesize / 1024 / 1024).toFixed(
-                            2
-                          )}{" "}
-                          MB
-                        </p>
+                      {action === 'video-walkthrough' ? (
+                        <>
+                          {renderResult.video?.file_size && (
+                            <p>
+                              File:{" "}
+                              {(renderResult.video.file_size / 1024 / 1024).toFixed(
+                                2
+                              )}{" "}
+                              MB
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            Size: {renderResult.media?.width} ×{" "}
+                            {renderResult.media?.height}
+                          </p>
+                          {renderResult.media?.filesize && (
+                            <p>
+                              File:{" "}
+                              {(renderResult.media.filesize / 1024 / 1024).toFixed(
+                                2
+                              )}{" "}
+                              MB
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                     <motion.a
-                      href={renderResult.media.absoluteUrl}
-                      download={renderResult.media?.filename}
+                      href={action === 'video-walkthrough' ? renderResult.video?.url : renderResult.media?.absoluteUrl}
+                      download={action === 'video-walkthrough' ? renderResult.video?.file_name : renderResult.media?.filename}
                       target="_blank"
                       rel="noopener noreferrer"
                       whileHover={{ scale: 1.02 }}
@@ -440,7 +603,7 @@ export default function Page() {
             <div className="flex items-center gap-3">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
               <p className="text-blue-600 font-medium">
-                Generating 3D render...
+                {action === 'video-walkthrough' ? "Generating video walkthrough..." : "Generating 3D render..."}
               </p>
             </div>
             <p className="text-blue-500 text-sm mt-1">
@@ -489,11 +652,18 @@ export default function Page() {
           onDescriptionChange={handleDescriptionChange}
           onModelChange={handleModelChange}
           onStyleChange={handleStyleChange}
+          onActionChange={setAction}
           onSubmit={handleSubmit}
           model={model}
           style={style}
+          action={action}
           defaultDescription={description}
           isLoading={isLoading}
+          // Public images props
+          publicImages={publicImages}
+          onAddPublicImage={addPublicImage}
+          onRemovePublicImage={removePublicImage}
+          onPublicImageSelect={handleImageSelect}
         />
       </motion.div>
     </div>
