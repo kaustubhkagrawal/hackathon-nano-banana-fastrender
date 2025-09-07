@@ -392,7 +392,7 @@ export default function Page() {
     <div className="h-svh flex flex-col bg-background overflow-hidden [background-size:40px_40px] [background-image:linear-gradient(to_right,rgba(228,228,231,0.3)_1px,transparent_2px),linear-gradient(to_bottom,rgba(228,228,231,0.4)_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,rgba(38,38,38,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(38,38,38,0.18)_1px,transparent_1px)]">
       {/* Fixed History Button - Top Right */}
       {renderResult && (
-        <div className="fixed top-4 right-4 z-40">
+        <div className="fixed top-24 right-8 z-40">
           <Drawer
             open={isDrawerOpen}
             direction="right"
