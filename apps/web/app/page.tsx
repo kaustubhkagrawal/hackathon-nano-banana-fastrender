@@ -153,6 +153,7 @@ export default function Page() {
     setError(null);
     setHasSubmitted(false); // Reset animation state
     setCurrentResult(null);
+    clearHistory(); // Also clear the history when clearing results
   };
 
   const handleSelectHistoryItem = (result: any) => {
@@ -167,7 +168,8 @@ export default function Page() {
 
   const handleClearHistory = () => {
     clearHistory();
-    clearResults();
+    // We don't want to clear the current result when clearing history
+    // The current result should remain visible
   };
 
   return (
