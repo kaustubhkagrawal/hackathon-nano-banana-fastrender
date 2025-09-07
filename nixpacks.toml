@@ -3,19 +3,3 @@
 # Install pnpm
 nixPkgs = ["nodejs_20", "pnpm"]
 cmds = ["corepack enable"]
-
-[phases.install]
-# Install dependencies using pnpm
-cmds = ["pnpm install"]
-
-[phases.build]
-# Build the application
-cmds = ["pnpm build"]
-
-[start]
-# Start the application
-cmd = "pnpm start"
-
-[variables]
-# Environment variables
-NODE_ENV = "production"
