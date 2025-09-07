@@ -281,10 +281,10 @@ export default function Page() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              3D Render Generator
+              Fast Render
             </h1>
             <p className="text-muted-foreground">
-              Select an image and describe your vision to generate a 3D render
+              Upload a floor plan and get a geometry‑locked 3D view with photoreal images
             </p>
           </motion.div>
         )}
