@@ -733,13 +733,7 @@ export default function Page() {
                       </div>
                     </DrawerContent>
                   </Drawer>
-                  
-                  <button
-                    onClick={clearResults}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    ✕ Clear
-                  </button>
+
                 </div>
               </div>
 
