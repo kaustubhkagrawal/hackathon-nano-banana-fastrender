@@ -568,7 +568,7 @@ function PromptForm({
             <div className="flex items-center gap-3">
               {/* Action Selector */}
               <Select value={action} onValueChange={handleActionChange}>
-                <SelectTrigger className="w-fit min-w-[140px] border text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
+                <SelectTrigger className="w-fit min-w-[140px] border border-border bg-transparent text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
                   <SelectValue className="text-sm" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
@@ -592,7 +592,7 @@ function PromptForm({
 
               {/* Model Selector */}
               <Select value={model} onValueChange={onModelChange}>
-                <SelectTrigger className="w-fit min-w-[120px] !bg-foreground/20 border-none text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
+                <SelectTrigger className="w-fit min-w-[120px] border border-border bg-transparent text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
                   <SelectValue className="text-sm" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
@@ -624,7 +624,7 @@ function PromptForm({
               {/* Style Selector - Only show for render action */}
               {action === "render" && (
                 <Select value={style} onValueChange={onStyleChange}>
-                  <SelectTrigger className="w-fit min-w-[100px] !bg-foreground/20 border-none text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
+                  <SelectTrigger className="w-fit min-w-[100px] border border-border bg-transparent text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
                     <SelectValue className="text-sm" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
@@ -645,13 +645,13 @@ function PromptForm({
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
               {/* Help Button */}
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 className="bg-foreground/20 text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground border-none h-8 w-8 p-0 rounded-lg transition-all duration-200"
               >
                 <HelpCircleIcon className="w-4 h-4" />
-              </Button>
+              </Button> */}
 
               {/* Submit/Arrow Button */}
               <Button
@@ -663,13 +663,13 @@ function PromptForm({
                   !description.trim() ||
                   (!selectedLibraryImage && !selectedImage)
                 }
-                className="bg-foreground/20 text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground border-none h-8 w-8 p-0 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-foreground/20 text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground border-none h-12 w-12 p-0 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current"></div>
                 ) : (
                   <svg
-                    className="w-4 h-4"
+                    className="w-8 h-8"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
