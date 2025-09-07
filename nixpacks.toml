@@ -1,5 +1,1 @@
-# Nixpacks configuration for shadcn-ui-monorepo
-[phases.setup]
-# Install pnpm
 nixPkgs = ["nodejs_20", "pnpm"]
-cmds = ["corepack enable"]
