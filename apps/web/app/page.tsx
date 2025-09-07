@@ -63,17 +63,8 @@ export default function Page() {
   >("render");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Load the current result from store on component mount
-  useEffect(() => {
-    if (currentResult) {
-      setRenderResult(currentResult);
-      setHasSubmitted(true);
-      setDescription(currentResult.description);
-      setModel(currentResult.model);
-      setStyle(currentResult.style);
-      setSelectedLibraryImage(currentResult.imageUrl);
-    }
-  }, [currentResult]);
+  // Don't automatically load currentResult on mount - start with empty view
+  // Results should only be shown when explicitly selected from history or after new submission
 
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
@@ -372,7 +363,13 @@ export default function Page() {
     setError(null);
     setHasSubmitted(false); // Reset animation state
     setCurrentResult(null);
-    clearHistory(); // Also clear the history when clearing results
+    // Reset form to default state
+    setDescription("Create a 3d render view of the given room plan");
+    setModel("nano-banana");
+    setStyle("japandi");
+    setSelectedLibraryImage(null);
+    setUploadedImage(null);
+    setAction("render");
   };
 
   const handleSelectHistoryItem = (result: RenderResult) => {
@@ -388,8 +385,7 @@ export default function Page() {
 
   const handleClearHistory = () => {
     clearHistory();
-    // We don't want to clear the current result when clearing history
-    // The current result should remain visible
+    // Note: This only clears the history, not the currently displayed result
   };
 
   return (
@@ -413,6 +409,125 @@ export default function Page() {
                 AI-powered architectural visualization that converts <br /> 2D
                 plans into stunning 3D renders
               </p>
+
+              {/* History Button - Show when page is empty but there's history */}
+              {history.length > 0 && (
+                <div className="mb-6">
+                  <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="bg-background/80 border-border hover:bg-muted/50"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        View History ({history.length})
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent direction="right" className="w-80 max-w-[80vw]">
+                      <DrawerHeader>
+                        <DrawerTitle>History</DrawerTitle>
+                      </DrawerHeader>
+                      
+                      <div className="flex-1 p-4 overflow-y-auto">
+                        <div className="space-y-3">
+                          {history.map((item) => (
+                            <div
+                              key={item.id}
+                              onClick={() => {
+                                handleSelectHistoryItem(item);
+                                setIsDrawerOpen(false);
+                              }}
+                              className="relative group cursor-pointer rounded-lg p-3 border bg-background hover:bg-muted/50 border-border transition-all"
+                            >
+                              <div className="flex items-start gap-3">
+                                {item.renderedImageUrl ? (
+                                  item.renderedImageUrl.endsWith(".mp4") ||
+                                  item.renderedImageUrl.endsWith(".webm") ||
+                                  item.renderedImageUrl.endsWith(".mov") ? (
+                                    <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                      <svg
+                                        className="w-5 h-5 text-muted-foreground"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={1}
+                                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                        />
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={1}
+                                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                    </div>
+                                  ) : (
+                                    <img
+                                      src={item.renderedImageUrl}
+                                      alt="Thumbnail"
+                                      className="w-12 h-12 object-cover rounded"
+                                    />
+                                  )
+                                ) : (
+                                  <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                    <svg
+                                      className="w-5 h-5 text-muted-foreground"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={1}
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">
+                                    {item.description.substring(0, 30)}...
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    <span className="bg-muted px-2 py-0.5 rounded">{item.action}</span>
+                                    <span>{item.model}</span>
+                                    {item.style && (
+                                      <>
+                                        <span>•</span>
+                                        <span>{item.style}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {new Date(item.timestamp).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -460,6 +575,28 @@ export default function Page() {
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearResults}
+                    className="bg-background/80 border-border hover:bg-muted/50"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    New Render
+                  </Button>
+                  
                   <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                     <DrawerTrigger asChild>
                       <Button
