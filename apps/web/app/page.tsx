@@ -12,6 +12,11 @@ import {
   DrawerTrigger,
 } from "@workspace/ui/components/drawer";
 import { Button } from "@workspace/ui/components/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import React from "react";
 
 interface RenderResult {
@@ -593,108 +598,7 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* New Render Button */}
-                <div className="mt-6 pt-4 border-t border-border">
-                  <Button
-                    onClick={() => {
-                      clearResults();
-                      setIsDrawerOpen(false);
-                    }}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    New Render
-                  </Button>
-                </div>
-
-                {/* Download Section */}
-                {(renderResult.media?.absoluteUrl ||
-                  renderResult.video?.url) && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="text-sm text-muted-foreground mb-3">
-                      {action === "video-walkthrough" ? (
-                        <>
-                          {renderResult.video?.file_size && (
-                            <p>
-                              File Size:{" "}
-                              {(
-                                renderResult.video.file_size /
-                                1024 /
-                                1024
-                              ).toFixed(2)}{" "}
-                              MB
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <p>
-                            Size: {renderResult.media?.width} ×{" "}
-                            {renderResult.media?.height}
-                          </p>
-                          {renderResult.media?.filesize && (
-                            <p>
-                              File Size:{" "}
-                              {(
-                                renderResult.media.filesize /
-                                1024 /
-                                1024
-                              ).toFixed(2)}{" "}
-                              MB
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    <Button
-                      asChild
-                      className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                    >
-                      <a
-                        href={
-                          action === "video-walkthrough"
-                            ? renderResult.video?.url
-                            : renderResult.media?.absoluteUrl
-                        }
-                        download={
-                          action === "video-walkthrough"
-                            ? renderResult.video?.file_name
-                            : renderResult.media?.filename
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                        Download
-                      </a>
-                    </Button>
-                  </div>
-                )}
+                {/* Download Section removed; download now on result media */}
               </div>
             </DrawerContent>
           </Drawer>
@@ -875,20 +779,57 @@ export default function Page() {
                 >
                   {/* Video Preview */}
                   {renderResult.video?.url ? (
-                    <div className="w-full max-h-[60vh]">
+                    <div className="w-full max-h-[60vh] group">
                       <video
                         src={renderResult.video.url}
                         controls
                         className="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-border"
                       />
+                      {/* Download overlay with tooltip */}
+                      <div className="absolute top-3 right-3">
+                        <a
+                          href={renderResult.video.url}
+                          download={renderResult.video.file_name}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-md bg-secondary/80 text-secondary-foreground hover:bg-secondary p-2 shadow transition-opacity opacity-90"
+                          aria-label="Download"
+                          title="Download"
+                        >
+                          <img
+                            src="/download.svg"
+                            alt="Download"
+                            className="w-4 h-4"
+                          />
+                        </a>
+                      </div>
                     </div>
                   ) : renderResult.media?.absoluteUrl ? (
                     /* Image Preview */
-                    <img
-                      src={renderResult.media.absoluteUrl}
-                      alt="Generated 3D render"
-                      className="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-border"
-                    />
+                    <div className="relative w-full max-h-[60vh]">
+                      <img
+                        src={renderResult.media.absoluteUrl}
+                        alt="Generated 3D render"
+                        className="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-border"
+                      />
+                      <div className="absolute top-3 right-3">
+                        <a
+                          href={renderResult.media.absoluteUrl}
+                          download={renderResult.media.filename}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-md bg-secondary/80 text-secondary-foreground hover:bg-secondary p-2 shadow transition-opacity opacity-90"
+                          aria-label="Download"
+                          title="Download"
+                        >
+                          <img
+                            src="/download.svg"
+                            alt="Download"
+                            className="w-4 h-4"
+                          />
+                        </a>
+                      </div>
+                    </div>
                   ) : (
                     <div className="w-96 h-64 bg-muted rounded-lg flex items-center justify-center border border-border">
                       <svg
