@@ -273,22 +273,7 @@ export default function Page() {
   return (
     <div className="min-h-svh bg-background overflow-hidden">
       {/* Header - Only show when not submitted */}
-      <AnimatePresence>
-        {!hasSubmitted && (
-          <motion.div
-            className="text-center py-8"
-            exit={{ opacity: 0, y: -50 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Fast Render
-            </h1>
-            <p className="text-muted-foreground">
-              Upload a floor plan and get a geometry‑locked 3D view with photoreal images
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+     
 
       {/* Main Layout */}
       <div
@@ -508,6 +493,67 @@ export default function Page() {
                 )}
               </motion.div>
             </motion.div>
+          )}
+          {!hasSubmitted && !renderResult && (
+            <div>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="max-w-md mx-auto">
+                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                      <svg className="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Welcome to Fast Render</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Upload your floor plan to get started with AI-powered 3D rendering
+                    </p>
+                    <div className="bg-muted/30 rounded-lg p-4 border border-border inline-block">
+                      <p className="text-sm text-foreground">
+                        <span className="font-medium">Tip:</span> Use clear, high-contrast floor plans for best results
+                      </p>
+                    </div>
+                  </div>
+
+                </motion.div>
+
+
+              <motion.div
+                className="text-center py-8"
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ duration: 0.6 }}
+              >
+                {/* How It Works */}
+                <div className="max-w-2xl mx-auto px-4">
+                  <h2 className="text-xl font-semibold text-foreground mb-4">How It Works</h2>
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">1</span>
+                      <span>Upload floor plan</span>
+                    </div>
+                    <svg className="w-4 h-4 text-muted-foreground hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">2</span>
+                      <span>Describe your vision</span>
+                    </div>
+                    <svg className="w-4 h-4 text-muted-foreground hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">3</span>
+                      <span>Get 3D render</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+         
+
           )}
         </AnimatePresence>
       </div>
