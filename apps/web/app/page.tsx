@@ -704,7 +704,7 @@ export default function Page() {
       <AnimatePresence>
         {!hasSubmitted && !renderResult && (
           <motion.div
-            className="text-center py-12 md:py-16"
+            className="flex flex-col items-center justify-center min-h-[70svh] text-center "
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
@@ -852,9 +852,7 @@ export default function Page() {
       {/* Main Layout */}
       <div
         className={`transition-all duration-1000 flex-1 overflow-hidden ${
-          hasSubmitted && renderResult
-            ? "flex flex-col"
-            : "flex items-center justify-center min-h-[60vh] px-8 pb-32"
+          hasSubmitted && renderResult ? "flex flex-col" : "hidden"
         }`}
       >
         {/* Results Layout - Wireframe Style */}
@@ -931,8 +929,8 @@ export default function Page() {
         }}
         className={`${
           hasSubmitted
-            ? "fixed bottom-6 left-1/2 transform -translate-x-1/2"
-            : "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            ? "fixed bottom-6 left-1/2 -translate-x-1/2"
+            : "relative mx-auto mt-6"
         } z-50 flex flex-col items-center transition-all duration-800`}
       >
         {/* Loading State - Above the form */}
