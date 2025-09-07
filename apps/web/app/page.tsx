@@ -1,10 +1,12 @@
 "use client";
 
 import { PromptForm } from "@workspace/ui/components/prompt-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useRenderHistoryStore } from '@/stores';
 
 export default function Page() {
+  const { history, currentResult, addResult, setCurrentResult, clearHistory } = useRenderHistoryStore();
   const [description, setDescription] = useState(
     "Create a 3d render of the given floor plan"
   );
@@ -18,6 +20,18 @@ export default function Page() {
   const [renderResult, setRenderResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Load the current result from store on component mount
+  useEffect(() => {
+    if (currentResult) {
+      setRenderResult(currentResult);
+      setHasSubmitted(true);
+      setDescription(currentResult.description);
+      setModel(currentResult.model);
+      setStyle(currentResult.style);
+      setSelectedLibraryImage(currentResult.imageUrl);
+    }
+  }, [currentResult]);
 
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
@@ -114,6 +128,16 @@ export default function Page() {
 
       console.log("Render result:", result);
       setRenderResult(result);
+      
+      // Add result to history store
+      addResult({
+        description,
+        model,
+        style,
+        imageUrl,
+        renderedImageUrl: result.media?.absoluteUrl || '',
+        media: result.media
+      });
     } catch (err) {
       console.error("Render request failed:", err);
       setError(
@@ -128,6 +152,22 @@ export default function Page() {
     setRenderResult(null);
     setError(null);
     setHasSubmitted(false); // Reset animation state
+    setCurrentResult(null);
+  };
+
+  const handleSelectHistoryItem = (result: any) => {
+    setCurrentResult(result);
+    setRenderResult(result);
+    setHasSubmitted(true);
+    setDescription(result.description);
+    setModel(result.model);
+    setStyle(result.style);
+    setSelectedLibraryImage(result.imageUrl);
+  };
+
+  const handleClearHistory = () => {
+    clearHistory();
+    clearResults();
   };
 
   return (
@@ -247,40 +287,80 @@ export default function Page() {
                     <div className="absolute inset-0 bg-blue-500/20 rounded-lg"></div>
                     <div className="absolute bottom-2 left-2 right-2">
                       <p className="text-xs text-foreground font-medium truncate">
-                        Main Render
+                        Current Render
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Placeholder Thumbnails */}
-                {[1, 2, 3].map((index) => (
-                  <div
-                    key={index}
-                    className="relative group cursor-pointer opacity-50"
-                  >
-                    <div className="w-full aspect-square bg-muted rounded-lg border border-border flex items-center justify-center">
-                      <svg
-                        className="w-8 h-8 text-muted-foreground"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-xs text-muted-foreground truncate">
-                        Variation {index}
-                      </p>
-                    </div>
+                {/* History Section */}
+                <div className="border-t border-border pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                      History
+                    </h4>
+                    <button
+                      onClick={handleClearHistory}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                ))}
+                  
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {history.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        No history yet
+                      </p>
+                    ) : (
+                      history.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleSelectHistoryItem(item)}
+                          className={`relative group cursor-pointer rounded-lg p-2 ${
+                            currentResult?.id === item.id
+                              ? 'bg-blue-500/20 border border-blue-500/30'
+                              : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {item.renderedImageUrl ? (
+                              <img
+                                src={item.renderedImageUrl}
+                                alt="Thumbnail"
+                                className="w-10 h-10 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                                <svg
+                                  className="w-4 h-4 text-muted-foreground"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-foreground truncate">
+                                {item.description.substring(0, 20)}...
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(item.timestamp).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
 
                 {/* Download Section */}
                 {renderResult.media?.absoluteUrl && (

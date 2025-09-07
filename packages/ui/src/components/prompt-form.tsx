@@ -73,31 +73,37 @@ function PromptForm({
       id: "washroom",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/Toilet.png",
       title: "Washroom",
+      tags: ['render']
     },
     {
       id: "bedroom",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/BedRoom.png",
       title: "Bedroom",
+      tags: ['render']
     },
     {
       id: "kitchen",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/Kitchen.png",
       title: "Kitchen Test",
+      tags: ['render']
     },
     {
       id: "kitchen2",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/Kitchen2.png",
       title: "Kitchen 2",
+      tags: ['render']
     },
     {
       id: "kitchen3",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/Kitchen3.png",
       title: "Kitchen 3",
+      tags: ['render']
     },
     {
       id: "washroom2",
       url: "https://ik.imagekit.io/nf8uqfojx/2d%20plan/Bathroom2.png",
       title: "Washroom",
+      tags: ['render']
     },
   ];
 
