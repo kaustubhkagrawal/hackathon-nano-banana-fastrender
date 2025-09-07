@@ -4,11 +4,12 @@ import { PromptForm } from "@workspace/ui/components/prompt-form";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useRenderHistoryStore } from '@/stores';
+import React from "react";
 
 export default function Page() {
   const { history, currentResult, addResult, setCurrentResult, clearHistory } = useRenderHistoryStore();
   const [description, setDescription] = useState(
-    "Create a 3d render of the given floor plan"
+    "Create a 3d render view of the given room plan"
   );
   const [model, setModel] = useState("nano-banana");
   const [style, setStyle] = useState("japandi");

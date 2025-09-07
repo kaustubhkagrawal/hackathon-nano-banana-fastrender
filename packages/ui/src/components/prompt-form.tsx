@@ -299,7 +299,7 @@ function PromptForm({
 
             {/* Prompt Text Input */}
             <Textarea
-              placeholder="Create a 3d render of the given floor plan"
+              placeholder="Create a 3d view of the given room plan"
               value={description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 handleDescriptionChange(e.target.value)
