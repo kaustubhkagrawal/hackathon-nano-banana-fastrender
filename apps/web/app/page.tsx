@@ -389,11 +389,15 @@ export default function Page() {
   };
 
   return (
-    <div className="h-svh flex flex-col bg-background overflow-hidden [background-size:40px_40px] [background-image:linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]">
+    <div className="h-svh flex flex-col bg-background overflow-hidden [background-size:40px_40px] [background-image:linear-gradient(to_right,rgba(228,228,231,0.3)_1px,transparent_2px),linear-gradient(to_bottom,rgba(228,228,231,0.4)_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,rgba(38,38,38,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(38,38,38,0.18)_1px,transparent_1px)]">
       {/* Fixed History Button - Top Right */}
       {renderResult && (
         <div className="fixed top-4 right-4 z-40">
-          <Drawer open={isDrawerOpen} direction="right" onOpenChange={setIsDrawerOpen}>
+          <Drawer
+            open={isDrawerOpen}
+            direction="right"
+            onOpenChange={setIsDrawerOpen}
+          >
             <DrawerTrigger asChild>
               <Button
                 variant="outline"
@@ -719,7 +723,11 @@ export default function Page() {
               {/* History Button - Show when page is empty but there's history */}
               {history.length > 0 && (
                 <div className="mb-6">
-                  <Drawer direction="right" open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                  <Drawer
+                    direction="right"
+                    open={isDrawerOpen}
+                    onOpenChange={setIsDrawerOpen}
+                  >
                     <DrawerTrigger asChild>
                       <Button
                         variant="outline"
@@ -741,9 +749,7 @@ export default function Page() {
                         View History ({history.length})
                       </Button>
                     </DrawerTrigger>
-                    <DrawerContent
-                      className="w-80 max-w-[80vw]"
-                    >
+                    <DrawerContent className="w-80 max-w-[80vw]">
                       <DrawerHeader>
                         <DrawerTitle>History</DrawerTitle>
                       </DrawerHeader>

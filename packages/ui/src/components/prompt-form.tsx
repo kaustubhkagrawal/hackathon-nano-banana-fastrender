@@ -568,7 +568,7 @@ function PromptForm({
             <div className="flex items-center gap-3">
               {/* Action Selector */}
               <Select value={action} onValueChange={handleActionChange}>
-                <SelectTrigger className="w-fit min-w-[140px] !bg-foreground/20 border-none text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
+                <SelectTrigger className="w-fit min-w-[140px] border text-foreground hover:!bg-foreground/30 hover:text-foreground active:bg-foreground/30 focus:bg-foreground/20 focus:text-foreground h-10 px-3 rounded-xl focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200">
                   <SelectValue className="text-sm" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border shadow-2xl bg-popover">
