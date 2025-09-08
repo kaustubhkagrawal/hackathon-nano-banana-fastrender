@@ -429,6 +429,35 @@ export default function Page() {
 
   return (
     <div className="h-svh relative flex flex-col bg-background overflow-hidden ">
+      {/* Logo - Horizontally centered at the top */}
+      <motion.div
+        className={`fixed z-50 transition-all duration-1000 top-4 ${
+          hasSubmitted
+            ? "left-4"
+            : "left-1/2 transform -translate-x-1/2"
+        }`}
+        animate={{
+          left: hasSubmitted ? "1rem" : "50%",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          duration: 0.8,
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="size-10 rounded-lg flex items-center justify-center">
+            <img 
+              src="/3d-z-axis-logo.png" 
+              alt="Z-Axis Logo" 
+              className="size-9 relative -top-1 text-white"
+            />
+          </div>
+          <span className="text-xl font-bold text-foreground">zAxis</span>
+        </div>
+      </motion.div>
+      
       <div
         className={cn(
           "absolute inset-0 z-0",
@@ -442,7 +471,7 @@ export default function Page() {
       
       {/* Fixed History Button - Top Right */}
       {renderResult && (
-        <div className="fixed top-24 right-8 z-40">
+        <div className="fixed top-4 right-8 z-40">
           <Drawer
             open={isDrawerOpen}
             direction="right"
@@ -653,7 +682,7 @@ export default function Page() {
       <AnimatePresence>
         {!hasSubmitted && !renderResult && (
           <motion.div
-            className="flex flex-col items-center justify-center min-h-[70svh] text-center z-1"
+            className="flex flex-col items-center justify-center min-h-[70svh] text-center z-1 pt-16"
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
