@@ -428,7 +428,7 @@ export default function Page() {
   };
 
   return (
-    <div className="h-svh relative flex flex-col bg-background overflow-hidden ">
+    <div className="h-svh relative flex flex-col bg-background overflow-hidden">
       {/* Logo - Horizontally centered at the top */}
       <motion.div
         className={`fixed z-50 transition-all duration-1000 top-4 ${
@@ -437,13 +437,14 @@ export default function Page() {
             : "left-1/2 transform -translate-x-1/2"
         }`}
         animate={{
+          top: hasSubmitted ? "1rem" : "5rem",
           left: hasSubmitted ? "1rem" : "50%",
         }}
         transition={{
           type: "spring",
-          stiffness: 100,
-          damping: 20,
-          duration: 0.8,
+          // stiffness: 100,
+          // damping: 20,
+          duration: 0.4,
         }}
       >
         <div className="flex items-center gap-2">
