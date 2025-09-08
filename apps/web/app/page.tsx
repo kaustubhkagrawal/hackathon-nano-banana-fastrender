@@ -683,7 +683,9 @@ export default function Page() {
       <AnimatePresence>
         {!hasSubmitted && !renderResult && (
           <motion.div
-            className="flex flex-col items-center justify-center min-h-[70svh] text-center z-1 pt-16"
+            className={`flex flex-col items-center justify-center min-h-[70svh] text-center z-1 pt-16 transition-all duration-300 ${
+              isDrawerOpen ? "pr-80" : ""
+            }`}
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
@@ -830,9 +832,9 @@ export default function Page() {
 
       {/* Main Layout */}
       <div
-        className={`z-1 transition-all duration-1000 flex-1 overflow-hidden ${
+        className={`z-1 transition-all duration-300 flex-1 overflow-hidden ${
           hasSubmitted && renderResult ? "flex flex-col" : "hidden"
-        }`}
+        } ${isDrawerOpen ? "pr-80" : ""}`}
       >
         {/* Results Layout - Wireframe Style */}
         <AnimatePresence>
@@ -947,7 +949,9 @@ export default function Page() {
           hasSubmitted
             ? "fixed bottom-6 left-1/2 -translate-x-1/2"
             : "relative mx-auto mt-6"
-        } z-50 flex flex-col items-center transition-all duration-800`}
+        } z-50 flex flex-col items-center transition-all duration-300 ${
+          isDrawerOpen && hasSubmitted ? "pr-80" : ""
+        }`}
       >
         {/* Loading State - Above the form */}
         {isLoading && (
