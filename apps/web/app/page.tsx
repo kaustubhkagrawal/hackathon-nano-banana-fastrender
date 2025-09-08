@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import React from "react";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface RenderResult {
   id: string;
@@ -127,38 +128,71 @@ export default function Page() {
       setLoadingProgress(0);
 
       // Start smart loading simulation that adapts to actual API progress
-      const loadingStages = [
-        {
-          stage: 0,
-          text: "Analyzing room structure...",
-          baseMinTime: 2000,
-          maxTime: 3000,
-        },
-        {
-          stage: 1,
-          text: "Reading walls and windows...",
-          baseMinTime: 3000,
-          maxTime: 5000,
-        },
-        {
-          stage: 2,
-          text: "Detecting furniture placement...",
-          baseMinTime: 4000,
-          maxTime: 7000,
-        },
-        {
-          stage: 3,
-          text: "Calculating camera angles...",
-          baseMinTime: 2000,
-          maxTime: 4000,
-        },
-        {
-          stage: 4,
-          text: "Rendering 3D environment...",
-          baseMinTime: 2000,
-          maxTime: 8000,
-        },
-      ];
+      const loadingStages = action === "video-walkthrough" 
+        ? [
+            {
+              stage: 0,
+              text: "Analyzing floor plan...",
+              baseMinTime: 2000,
+              maxTime: 3000,
+            },
+            {
+              stage: 1,
+              text: "Identifying rooms and spaces...",
+              baseMinTime: 3000,
+              maxTime: 5000,
+            },
+            {
+              stage: 2,
+              text: "Mapping spatial relationships...",
+              baseMinTime: 4000,
+              maxTime: 7000,
+            },
+            {
+              stage: 3,
+              text: "Generating camera path...",
+              baseMinTime: 3000,
+              maxTime: 5000,
+            },
+            {
+              stage: 4,
+              text: "Rendering video walkthrough...",
+              baseMinTime: 3000,
+              maxTime: 10000,
+            },
+          ]
+        : [
+            {
+              stage: 0,
+              text: "Analyzing room structure...",
+              baseMinTime: 2000,
+              maxTime: 3000,
+            },
+            {
+              stage: 1,
+              text: "Reading walls and windows...",
+              baseMinTime: 3000,
+              maxTime: 5000,
+            },
+            {
+              stage: 2,
+              text: "Detecting furniture placement...",
+              baseMinTime: 4000,
+              maxTime: 7000,
+            },
+            {
+              stage: 3,
+              text: "Calculating camera angles...",
+              baseMinTime: 2000,
+              maxTime: 4000,
+            },
+            {
+              stage: 4,
+              text: "Rendering 3D environment...",
+              baseMinTime: 2000,
+              maxTime: 8000,
+            },
+          ];
 
       let currentStageIndex = 0;
       let stageStartTime = Date.now();
@@ -394,7 +428,18 @@ export default function Page() {
   };
 
   return (
-    <div className="h-svh flex flex-col bg-background overflow-hidden [background-size:40px_40px] [background-image:linear-gradient(to_right,rgba(228,228,231,0.3)_1px,transparent_2px),linear-gradient(to_bottom,rgba(228,228,231,0.4)_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,rgba(38,38,38,0.18)_1px,transparent_1px),linear-gradient(to_bottom,rgba(38,38,38,0.18)_1px,transparent_1px)]">
+    <div className="h-svh relative flex flex-col bg-background overflow-hidden ">
+      <div
+        className={cn(
+          "absolute inset-0 z-0",
+          "[background-size:40px_40px]",
+          "[background-image:linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)]",
+          "dark:[background-image:linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]",
+        )}
+      />
+      {/* Radial gradient for the container to give a faded look */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_5%,black)] dark:bg-black"></div>
+      
       {/* Fixed History Button - Top Right */}
       {renderResult && (
         <div className="fixed top-24 right-8 z-40">
@@ -608,7 +653,7 @@ export default function Page() {
       <AnimatePresence>
         {!hasSubmitted && !renderResult && (
           <motion.div
-            className="flex flex-col items-center justify-center min-h-[70svh] text-center "
+            className="flex flex-col items-center justify-center min-h-[70svh] text-center z-1"
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.6 }}
           >
@@ -755,7 +800,7 @@ export default function Page() {
 
       {/* Main Layout */}
       <div
-        className={`transition-all duration-1000 flex-1 overflow-hidden ${
+        className={`z-1 transition-all duration-1000 flex-1 overflow-hidden ${
           hasSubmitted && renderResult ? "flex flex-col" : "hidden"
         }`}
       >
@@ -770,7 +815,7 @@ export default function Page() {
               className="flex-1 flex flex-col overflow-hidden"
             >
               {/* Main Content Area */}
-              <div className="flex-1 flex items-center justify-center p-8 bg-background">
+              <div className="flex-1 flex items-center justify-center px-8 pt-0 pb-20 bg-background">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -892,58 +937,163 @@ export default function Page() {
 
             {/* Loading Stages */}
             <div className="space-y-3">
-              {[
-                "Analyzing room structure...",
-                "Reading walls and windows...",
-                "Detecting furniture placement...",
-                "Calculating camera angles...",
-                "Rendering 3D environment...",
-              ].map((stageText, index) => {
-                const isActive = loadingStage === index;
-                const isCompleted = loadingStage > index;
-
-                return (
-                  <div key={index} className="flex items-center gap-3">
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        isCompleted
-                          ? "bg-green-500 border-green-500"
-                          : isActive
-                            ? "border-blue-500 bg-blue-500/20"
-                            : "border-gray-400"
-                      }`}
-                    >
-                      {isCompleted && (
-                        <svg
-                          className="w-2.5 h-2.5 text-white"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
+              {action === "video-walkthrough" ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 0 ? (loadingStage > 0 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 0 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
-                      {isActive && (
+                      {loadingStage === 0 && (
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                       )}
                     </div>
-                    <span
-                      className={`text-sm ${
-                        isCompleted
-                          ? "text-green-600 font-medium"
-                          : isActive
-                            ? "text-blue-600 font-medium"
-                            : "text-gray-500"
-                      }`}
-                    >
-                      {stageText}
+                    <span className={`text-sm ${loadingStage > 0 ? "text-green-600 font-medium" : (loadingStage === 0 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Analyzing floor plan...
                     </span>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 1 ? (loadingStage > 1 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 1 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 1 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 1 ? "text-green-600 font-medium" : (loadingStage === 1 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Identifying rooms and spaces...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 2 ? (loadingStage > 2 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 2 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 2 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 2 ? "text-green-600 font-medium" : (loadingStage === 2 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Mapping spatial relationships...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 3 ? (loadingStage > 3 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 3 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 3 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 3 ? "text-green-600 font-medium" : (loadingStage === 3 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Generating camera path...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 4 ? (loadingStage > 4 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 4 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 4 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 4 ? "text-green-600 font-medium" : (loadingStage === 4 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Rendering video walkthrough...
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 0 ? (loadingStage > 0 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 0 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 0 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 0 ? "text-green-600 font-medium" : (loadingStage === 0 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Analyzing room structure...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 1 ? (loadingStage > 1 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 1 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 1 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 1 ? "text-green-600 font-medium" : (loadingStage === 1 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Reading walls and windows...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 2 ? (loadingStage > 2 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 2 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 2 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 2 ? "text-green-600 font-medium" : (loadingStage === 2 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Detecting furniture placement...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 3 ? (loadingStage > 3 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 3 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 3 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 3 ? "text-green-600 font-medium" : (loadingStage === 3 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Calculating camera angles...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${loadingStage >= 4 ? (loadingStage > 4 ? "bg-green-500 border-green-500" : "border-blue-500 bg-blue-500/20") : "border-gray-400"}`}>
+                      {loadingStage > 4 && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      {loadingStage === 4 && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <span className={`text-sm ${loadingStage > 4 ? "text-green-600 font-medium" : (loadingStage === 4 ? "text-blue-600 font-medium" : "text-gray-500")}`}>
+                      Rendering 3D environment...
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Progress Bar */}
@@ -967,7 +1117,9 @@ export default function Page() {
             </div>
 
             <p className="text-blue-500 text-xs mt-3 text-center">
-              This process typically takes 45-60 seconds
+              {action === "video-walkthrough"
+                ? "This process typically takes 90s to 2 minutes"
+                : "This process typically takes 45 to 60 seconds"}
             </p>
           </motion.div>
         )}
